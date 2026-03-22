@@ -5,7 +5,7 @@ namespace ProcessPulse.Api.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-public class WorkflowsController : ControllerBase 
+public class WorkflowsController : ControllerBase
 {
     private readonly WorkflowService _workflowService;
 
@@ -15,9 +15,8 @@ public class WorkflowsController : ControllerBase
     }
 
     [HttpGet]
-    public IActionResult GetWorkflows()
+    public IActionResult Get()
     {
-        var workflows = _workflowService.GetAll();
-        return Ok(workflows);
+        return Ok(_workflowService.GetAll());
     }
 }
