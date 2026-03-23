@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using ProcessPulse.Api.Dtos;
 using ProcessPulse.Api.Models;
 using ProcessPulse.Api.Services;
 
@@ -21,31 +22,44 @@ public class WorkflowsController : ControllerBase
         return Ok(_workflowService.GetAll());
     }
 
-     [HttpGet("{id}")]
+    [HttpGet("{id}")]
     public IActionResult GetById(int id)
     {
         var workflow = _workflowService.GetById(id);
 
-        if (workflow == null)
+        if (workflow is null)
         {
-            return NotFound( new {message = $"Workflow with id {id} was not found."});
+            return NotFound(new { message = $"Workflow with id {id} was not found." });
         }
 
         return Ok(workflow);
     }
 
-   [HttpPost]
-    public IActionResult Create([FromBody] Workflow workflow)
+    [HttpPost]
+    public IActionResult Create([FromBody] CreateWorkflowRequest request)
     {
+        var workflow = new Workflow
+        {
+            Name = request.Name,
+            Status = request.Status,
+            Owner = request.Owner
+        };
+
         var createdWorkflow = _workflowService.Create(workflow);
 
         return CreatedAtAction(nameof(GetById), new { id = createdWorkflow.Id }, createdWorkflow);
     }
 
-
     [HttpPut("{id}")]
-    public IActionResult Update(int id, [FromBody] Workflow workflow)
+    public IActionResult Update(int id, [FromBody] UpdateWorkflowRequest request)
     {
+        var workflow = new Workflow
+        {
+            Name = request.Name,
+            Status = request.Status,
+            Owner = request.Owner
+        };
+
         var updated = _workflowService.Update(id, workflow);
 
         if (!updated)
@@ -68,5 +82,4 @@ public class WorkflowsController : ControllerBase
 
         return NoContent();
     }
-
 }
