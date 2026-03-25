@@ -35,40 +35,40 @@ public class WorkflowsController : ControllerBase
         return Ok(workflow);
     }
 
-    [HttpPost]
-    public IActionResult Create([FromBody] CreateWorkflowRequest request)
+[HttpPost]
+public IActionResult Create([FromBody] CreateWorkflowRequest request)
+{
+    var workflow = new Workflow
     {
-        var workflow = new Workflow
-        {
-            Name = request.Name,
-            Status = request.Status,
-            Owner = request.Owner
-        };
+        Name = request.Name,
+        Status = request.Status,
+        Owner = request.Owner
+    };
 
-        var createdWorkflow = _workflowService.Create(workflow);
+    var created = _workflowService.Create(workflow);
 
-        return CreatedAtAction(nameof(GetById), new { id = createdWorkflow.Id }, createdWorkflow);
+    return CreatedAtAction(nameof(GetById), new { id = created.Id }, created);
+}
+
+[HttpPut("{id}")]
+public IActionResult Update(int id, [FromBody] UpdateWorkflowRequest request)
+{
+    var workflow = new Workflow
+    {
+        Name = request.Name,
+        Status = request.Status,
+        Owner = request.Owner
+    };
+
+    var updated = _workflowService.Update(id, workflow);
+
+    if (!updated)
+    {
+        return NotFound(new { message = $"Workflow with id {id} was not found." });
     }
 
-    [HttpPut("{id}")]
-    public IActionResult Update(int id, [FromBody] UpdateWorkflowRequest request)
-    {
-        var workflow = new Workflow
-        {
-            Name = request.Name,
-            Status = request.Status,
-            Owner = request.Owner
-        };
-
-        var updated = _workflowService.Update(id, workflow);
-
-        if (!updated)
-        {
-            return NotFound(new { message = $"Workflow with id {id} was not found." });
-        }
-
-        return NoContent();
-    }
+    return NoContent();
+}
 
     [HttpDelete("{id}")]
     public IActionResult Delete(int id)
