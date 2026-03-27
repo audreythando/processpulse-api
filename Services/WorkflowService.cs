@@ -1,77 +1,76 @@
+using Microsoft.EntityFrameworkCore;
+using ProcessPulse.Api.Data;
+using ProcessPulse.Api.Dtos;
 using ProcessPulse.Api.Models;
 
 namespace ProcessPulse.Api.Services;
 
 public class WorkflowService
 {
-    private readonly  List<Workflow>  _workflows = new()
-    {
-        new Workflow
-        {
-            Id = 1,
-            Name = "Employee Onboarding",
-            Status = "Active",
-            Owner = "HR Team"
-        },
+    private readonly AppDbContext _context;
 
-        new Workflow
-        {
-            Id = 2,
-            Name = "Invoice Approval",
-            Status = "Pending",
-            Owner = "Finannce Team"
-        }
-    };
-
-    public List<Workflow> GetAll()
+    public WorkflowService(AppDbContext context)
     {
-        return _workflows;
+        _context = context;
     }
 
-    public Workflow GetById(int id)
+    public async Task<List<Workflow>> GetAllAsync()
     {
-        // return _workflows.FirstOrDefault(w => w.Id == id);
-        return _workflows[id - 1];
+        return await _context.Workflows
+            .OrderByDescending(w => w.CreatedAt)
+            .ToListAsync();
     }
 
-    public Workflow Create(Workflow workflow)
+    public async Task<Workflow?> GetByIdAsync(int id)
     {
-        var nextId = _workflows.Any() ?  _workflows.Max(w => w.Id) + 1 : 1;
-        workflow.Id = nextId;
-        workflow.CreatedAt = DateTime.Now;
+        return await _context.Workflows.FindAsync(id);
+    }
 
-        _workflows.Add(workflow);
+    public async Task<Workflow> CreateAsync(CreateWorkflowRequest request)
+    {
+        var workflow = new Workflow
+        {
+            Name = request.Name,
+            Status = request.Status,
+            Owner = request.Owner,
+            CreatedAt = DateTime.UtcNow
+        };
+
+        _context.Workflows.Add(workflow);
+        await _context.SaveChangesAsync();
 
         return workflow;
     }
 
-
-    public bool Update(int id, Workflow workflow)
+    public async Task<Workflow?> UpdateAsync(int id, UpdateWorkflowRequest request)
     {
-        var existingWorkflow = _workflows.FirstOrDefault(w => w.Id == id);
+        var workflow = await _context.Workflows.FindAsync(id);
 
-        if (existingWorkflow == null)
+        if (workflow is null)
         {
-            return false;
+            return null;
         }
 
-        existingWorkflow.Name = workflow.Name;
-        existingWorkflow.Status = workflow.Status;
-        existingWorkflow.Owner = workflow.Owner;
+        workflow.Name = request.Name;
+        workflow.Status = request.Status;
+        workflow.Owner = request.Owner;
 
-        return true;
+        await _context.SaveChangesAsync();
+
+        return workflow;
     }
 
-    public bool Delete(int id)
+    public async Task<bool> DeleteAsync(int id)
     {
-        var workflow = _workflows.FirstOrDefault(w => w.Id == id);
+        var workflow = await _context.Workflows.FindAsync(id);
 
-        if (workflow == null)
+        if (workflow is null)
         {
             return false;
         }
 
-        _workflows.Remove(workflow);
+        _context.Workflows.Remove(workflow);
+        await _context.SaveChangesAsync();
 
         return true;
     }
